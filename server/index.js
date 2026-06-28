@@ -12,8 +12,8 @@ dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
 
 
 const authRoutes = require('./routes/auth');
-const eventRoutes = require('./routes/events');
-const bookingRoutes = require('./routes/bookings');
+// const eventRoutes = require('./routes/events');
+// const bookingRoutes = require('./routes/bookings');
 
 const app = express();
 
