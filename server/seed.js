@@ -7,6 +7,10 @@ const Booking = require('./models/Booking');
 
 dotenv.config();
 
+const dns = require("dns");
+// Override DNS to bypass ISP/network blocks on MongoDB Atlas SRV records
+dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+
 const users = [
     { name: 'Admin User', email: 'admin@eventora.com', password: 'password123', role: 'admin' },
     { name: 'Demo User', email: 'user@eventora.com', password: 'password123', role: 'user' },
@@ -85,7 +89,10 @@ const events = [
 
 const seedDatabase = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/eventora');
+        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eventora', {
+            tls: true,
+            serverSelectionTimeoutMS: 15000,
+        });
         console.log('\n✅ MongoDB connection open...');
 
         await User.deleteMany();
