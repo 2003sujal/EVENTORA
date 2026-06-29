@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "postcss": "^8.5.16",
+    "tailwindcss": "^4.3.2"
+  }
+}
