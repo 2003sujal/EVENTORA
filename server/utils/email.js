@@ -31,6 +31,10 @@ const sendBookingEmail = async (userEmail, userName, eventTitle) => {
 };
 
 const sendOTPEmail = async (userEmail, otp, type) => {
+    console.log('\n=======================================');
+    console.log(`🔒 DEVELOPMENT OTP for ${userEmail}: ${otp}`);
+    console.log('=======================================\n');
+
     try {
         const title = type === 'account_verification' ? 'Verify your Eventora Account' : 'Eventora Booking Verification';
         const msg = type === 'account_verification'
