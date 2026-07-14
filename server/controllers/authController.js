@@ -30,6 +30,7 @@ exports.register = async (req, res) => {
         const otp = generateOTP();
         await OTP.create({ email, otp, action: 'account_verification' });
         await sendOTPEmail(email, otp, 'account_verification');
+        console.log(otp);
 
         res.status(201).json({
             message: 'OTP sent to email. Please verify.',
@@ -73,6 +74,7 @@ exports.verifyOTP = async (req, res) => {
     try {
         const { email, otp } = req.body;
         const validOTP = await OTP.findOne({ email, otp, action: 'account_verification' });
+        console.log(validOTP)
 
         if (!validOTP) {
             return res.status(400).json({ message: 'Invalid or expired OTP' });

@@ -11,6 +11,7 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
 
     const [showEventForm, setShowEventForm] = useState(false);
+    const [editingEventId, setEditingEventId] = useState(null);
     const [formData, setFormData] = useState({
         title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', image: ''
     });
@@ -38,16 +39,37 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleCreateEvent = async (e) => {
+    const handleSubmitEvent = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/events', formData);
+            if (editingEventId) {
+                await api.put(`/events/${editingEventId}`, formData);
+            } else {
+                await api.post('/events', formData);
+            }
             setShowEventForm(false);
+            setEditingEventId(null);
             setFormData({ title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', image: '' });
             fetchData();
         } catch (error) {
-            alert(error.response?.data?.message || 'Error creating event');
+            alert(error.response?.data?.message || `Error ${editingEventId ? 'updating' : 'creating'} event`);
         }
+    };
+
+    const handleEditClick = (event) => {
+        setFormData({
+            title: event.title || '',
+            description: event.description || '',
+            date: event.date ? new Date(event.date).toISOString().split('T')[0] : '',
+            location: event.location || '',
+            category: event.category || '',
+            totalSeats: event.totalSeats || '',
+            ticketPrice: event.ticketPrice || '',
+            image: event.image || ''
+        });
+        setEditingEventId(event._id);
+        setShowEventForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDeleteEvent = async (id) => {
@@ -91,10 +113,14 @@ const AdminDashboard = () => {
                     <p className="text-gray-300">Manage events and manually confirm bookings.</p>
                 </div>
                 <button
-                    onClick={() => setShowEventForm(!showEventForm)}
+                    onClick={() => {
+                        setShowEventForm(!showEventForm);
+                        setEditingEventId(null);
+                        setFormData({ title: '', description: '', date: '', location: '', category: '', totalSeats: '', ticketPrice: '', image: '' });
+                    }}
                     className="w-full px-6 py-3 font-bold text-black transition bg-white rounded-lg shadow-md md:w-auto hover:bg-gray-100"
                 >
-                    {showEventForm ? 'Cancel Creation' : '+ Create New Event'}
+                    {showEventForm ? 'Cancel' : '+ Create New Event'}
                 </button>
             </div>
 
@@ -125,8 +151,8 @@ const AdminDashboard = () => {
 
             {showEventForm && (
                 <div className="p-8 mb-8 bg-white border border-gray-100 shadow-sm rounded-2xl animation-slideDown">
-                    <h2 className="mb-6 text-2xl font-bold text-gray-800">Create New Event</h2>
-                    <form onSubmit={handleCreateEvent} className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <h2 className="mb-6 text-2xl font-bold text-gray-800">{editingEventId ? 'Edit Event' : 'Create New Event'}</h2>
+                    <form onSubmit={handleSubmitEvent} className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <input required type="text" placeholder="Event Title" className="px-4 py-3 transition border rounded-lg outline-none focus:ring-2 focus:ring-gray-700" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
                         <input required type="text" placeholder="Category (e.g., Tech, Music)" className="px-4 py-3 transition border rounded-lg outline-none focus:ring-2 focus:ring-gray-700" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} />
                         <input required type="date" className="px-4 py-3 transition border rounded-lg outline-none focus:ring-2 focus:ring-gray-700" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} />
@@ -139,7 +165,7 @@ const AdminDashboard = () => {
                         </div>
 
                         <textarea required placeholder="Event Description" className="h-32 px-4 py-3 transition border rounded-lg outline-none md:col-span-2 focus:ring-2 focus:ring-gray-700" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
-                        <button type="submit" className="py-3 mt-2 font-bold text-white transition bg-gray-900 rounded-lg shadow-md md:col-span-2 hover:bg-black">Publish Event</button>
+                        <button type="submit" className="py-3 mt-2 font-bold text-white transition bg-gray-900 rounded-lg shadow-md md:col-span-2 hover:bg-black">{editingEventId ? 'Update Event' : 'Publish Event'}</button>
                     </form>
                 </div>
             )}
@@ -163,9 +189,14 @@ const AdminDashboard = () => {
                                                 <span className="flex items-center gap-1 font-medium"><div className={`w-2 h-2 rounded-full ${event.availableSeats > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div> {event.availableSeats}/{event.totalSeats} seats</span>
                                             </div>
                                         </div>
-                                        <button onClick={() => handleDeleteEvent(event._id)} className="w-full px-4 py-2 text-sm font-bold text-red-500 transition border border-red-200 rounded-lg shadow-sm sm:w-auto hover:text-white hover:bg-red-500 shrink-0">
-                                            Delete
-                                        </button>
+                                        <div className="flex w-full gap-2 shrink-0 sm:w-auto">
+                                            <button onClick={() => handleEditClick(event)} className="flex-1 px-4 py-2 text-sm font-bold text-blue-600 transition border border-blue-200 rounded-lg shadow-sm hover:text-white hover:bg-blue-600">
+                                                Edit
+                                            </button>
+                                            <button onClick={() => handleDeleteEvent(event._id)} className="flex-1 px-4 py-2 text-sm font-bold text-red-500 transition border border-red-200 rounded-lg shadow-sm hover:text-white hover:bg-red-500">
+                                                Delete
+                                            </button>
+                                        </div>
                                     </li>
                                 ))
                             }
